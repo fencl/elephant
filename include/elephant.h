@@ -1,18 +1,18 @@
 #pragma once
-#ifndef _inflate_h_
-#define _inflate_h_
+#ifndef _elephant_h_
+#define _elephant_h_
 
 /* /============================================================================\
  * | Thread-safe variant allocates buffers on the stack (few KiB).              |
  * | This might not be tolerable in some cases.                                 |
  * \============================================================================/
  */
-#ifndef INFLATE_THREADSAFE
-#define INFLATE_THREADSAFE 1
+#ifndef ELEPHANT_THREADSAFE
+#define ELEPHANT_THREADSAFE 1
 #endif
 
 /* /============================================================================\
- * | DEFLATE decoder.                                                           |
+ * | Elephant - DEFLATE decoder.                                                |
  * |============================================================================|
  * | in      | input data buffer (read in bytes, least to most significant bit) |
  * | out     | output data buffer (has to be big enough, no overflow checking)  |
