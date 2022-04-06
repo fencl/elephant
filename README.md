@@ -12,7 +12,7 @@ to decompress DEFLATE bit stream. The stream is stored in a buffer passed throug
 In the header there is a `INFLATE_THREADSAFE` macro. If it is set to 0 (false) it means that the inflate function will be called only sequentialy and can use global variables. Those are used to store the huffman trees and other tables. In case the macro is set to 1, the library will allocate those trees and tables on the stack. This amounts to cca 4 additional KiB on the stack and might not be tolerable in cases where the stack is quite limited.
 
 ## Compilation
-There is no need for build system and so no build system or script is provided. Just add inflate.c to your sources and the parent directory of inflate.h to your include directories.
+There is no need for build system and so no build system or script is provided. Just add elephant.c in your sources and elephant.h in your include directories.
 
 ## Remarks
 This library has no error codes, asserts or any runtime checks whatsoever. The input stream has to be correct otherwise your program will output garbage or more likely crash.
