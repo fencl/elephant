@@ -1,4 +1,4 @@
-# Inflate
+# Elephant
 Simple __DEFLATE__ decoder, cca 150 lines of _horrible_ __C99__ code (intentionaly, _sometimes_ I can write somewhat readable code). No heap allocation, no dependencies, no stdlib (except for single use of stdint.h which is only used for uint_least8_t and uint_least16_t and can be simplified to unsigned char and unsigned short respectively in most cases).
 
 There is only one function exposed.
