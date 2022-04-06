@@ -1,6 +1,4 @@
-#include <inflate.h>
-
-/* Inflate
+/* Elephant DEFLATE decoder
  * Copyright (c) 2022 Matej Fencl
  *
  * Boost Software License - Version 1.0 - August 17th, 2003
@@ -37,8 +35,8 @@
  *  |    _/  \_ \_     |
  *  \==================/
  */
-
-#if defined(INFLATE_THREADSAFE) && INFLATE_THREADSAFE
+#include <elephant.h>
+#if defined(ELEPHANT_THREADSAFE) && ELEPHANT_THREADSAFE
 #define TEMP
 #else
 #define TEMP static
