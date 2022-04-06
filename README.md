@@ -6,10 +6,10 @@ Use this function
 ```c
 unsigned inflate(const void *restrict in, void *restrict out);
 ```
-to decompress DEFLATE bit stream. The stream is stored in a buffer passed through the `in` argument and is read byte by byte from the least to the most significat bit. Decompressed data will be written to a buffer passed through the `out` argument. This buffer has to be big enough to hold the decompressed data. 
+to decompress DEFLATE bit stream. The stream is stored in a buffer passed through the `in` argument and is read byte by byte from the least to the most significat bit. Decompressed data will be written to a buffer passed through the `out` argument. This buffer has to be big enough to hold the decompressed data.
 
 ## Configuration
-In the header there is a `INFLATE_MULTITHREADED` macro. If it is set to 0 (false) it means that the inflate function will be called only sequentialy and can use global variables. Those are used to store the huffman trees and other tables. In case the macro is set to 1, the library will allocate those trees and tables on the stack. This amounts to cca 4 additional KiB on the stack and might not be tolerable in cases where the stack is quite limited. 
+In the header there is a `INFLATE_THREADSAFE` macro. If it is set to 0 (false) it means that the inflate function will be called only sequentialy and can use global variables. Those are used to store the huffman trees and other tables. In case the macro is set to 1, the library will allocate those trees and tables on the stack. This amounts to cca 4 additional KiB on the stack and might not be tolerable in cases where the stack is quite limited.
 
 ## Compilation
 There is no need for build system and so no build system or script is provided. Just add inflate.c to your sources and the parent directory of inflate.h to your include directories.

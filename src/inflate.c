@@ -35,7 +35,7 @@
  *  \==================/
  */
 
-#if defined(INFLATE_MULTITHREADED) && INFLATE_MULTITHREADED
+#if defined(INFLATE_THREADSAFE) && INFLATE_THREADSAFE
 #define TEMP
 #else
 #define TEMP static

@@ -3,12 +3,12 @@
 #define _inflate_h_
 
 /* /============================================================================\
- * | Multithreaded variant allocates buffers on the stack (few KiB).            |
+ * | Thread-safe variant allocates buffers on the stack (few KiB).              |
  * | This might not be tolerable in some cases.                                 |
  * \============================================================================/
  */
-#ifndef INFLATE_MULTITHREADED
-#define INFLATE_MULTITHREADED 1
+#ifndef INFLATE_THREADSAFE
+#define INFLATE_THREADSAFE 1
 #endif
 
 /* /============================================================================\
