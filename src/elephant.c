@@ -51,10 +51,10 @@ typedef struct stream_t { const b_t *restrict in; b_t *restrict out, inb, inl, b
 typedef struct node_t { unsigned b0: 12, b1: 12, pl: 8; } node_t;
 
 static u16_t dst_base   [] = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577 };
-static u16_t len_base   [] = { 3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258 };
+static u8_t  len_base   [] = { 0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,255 };
 static u8_t  dst_extra  [] = { 0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13 };
 static u8_t  len_extra  [] = { 0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0 };
-static u16_t lenlen_ord [] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
+static u8_t  lenlen_ord [] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
 
 static u16_t read(stream_t *restrict in, u8_t c, b_t lsf) {
     u16_t out = 0; for (u8_t i = 0; i < c; ++i) {
@@ -136,7 +136,7 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                 if (sym < 256) {
                     *s.out++ = sym;
                 } else if (sym > 256) {
-                    u16_t len = len_base[sym - 257] + read(&s, len_extra[sym - 257], 1);
+                    u16_t len = len_base[sym - 257] + 3 + read(&s, len_extra[sym - 257], 1);
                     u8_t  ds  = read(&s, 5, 0);
                     u16_t dst = dst_base[ds] + read(&s, dst_extra[ds], 1);
                     b_t *restrict dat = s.out - dst;
@@ -158,7 +158,7 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                     u16_t sym = next(&s, lit_tree);
                     if (sym < 256) *s.out++ = sym;
                     else if (sym > 256) {
-                        u16_t l = len_base[sym - 257] + read(&s, len_extra[sym - 257], 1);
+                        u16_t l = len_base[sym - 257] + 3 + read(&s, len_extra[sym - 257], 1);
                         u16_t ds = next(&s, dst_tree);
                         u16_t dst = dst_base[ds] + read(&s, dst_extra[ds], 1);
                         b_t *restrict dat = s.out - dst;
