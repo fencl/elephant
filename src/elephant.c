@@ -76,15 +76,17 @@ static void build(node_t *restrict nodes, u16_t *restrict prefix, u16_t syms, co
                 node_t node = nodes[i];
                 u16_t np = prefix[i], ln = node.pl, sp = 0;
                 u8_t spl = 0, tb;
-                while (ln && top(np, ln) == (tb = top(c, l))) {
-                    sp = (sp << 1) | tb; ++spl; --ln; --l;
+                for (;;) {
+                    tb = top(c, l--);
+                    if (ln && top(np, ln) == tb) {
+                        sp = (sp << 1) | tb; ++spl; --ln;
+                    } else break;
                 }
-                u8_t bit = top(c, l); --l;
                 if (node.b1 == 0xFFF || ln) {
                     node.pl = ln - 1; nodes[nc] = node; prefix[nc] = np; ++nc;
-                    nodes[i] = (node_t) { nc - bit, nc - !bit, spl }; prefix[i] = sp;
+                    nodes[i] = (node_t) { nc - tb, nc - !tb, spl }; prefix[i] = sp;
                     break;
-                } else i = bit ? node.b1 : node.b0;
+                } else i = tb ? node.b1 : node.b0;
             }
             nodes[nc] = (node_t) { s, 0xFFF, l }; prefix[nc] = c; ++nc;
         }
