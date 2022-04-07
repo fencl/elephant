@@ -147,15 +147,16 @@ unsigned inflate(const void *restrict in, void *restrict out) {
             } break;
 
             case 2: {
+                TEMP u8_t   len[286];
+                TEMP u16_t  prefix[571];
+                TEMP node_t clen_tree[37], lit_tree[571], dst_tree[59];
                 u16_t litn = read(&s, 5, 1) + 257;
                 u8_t  dstn = read(&s, 5, 1) + 1;
                 u8_t  lenn = read(&s, 4, 1) + 4;
-                TEMP u8_t  len[286];
-                TEMP u16_t prefix[571];
                 for (u8_t i = 0; i < 19; ++i) len[lenlen_ord[i]] = i < lenn ? read(&s, 3, 1) : 0;
-                TEMP node_t clen_tree[37]; build(clen_tree, prefix, 19, len);
-                lens(&s, clen_tree, litn, len); TEMP node_t lit_tree[571]; build(lit_tree, prefix, litn, len);
-                lens(&s, clen_tree, dstn, len); TEMP node_t dst_tree[59]; build(dst_tree, prefix, dstn, len);
+                build(clen_tree, prefix, 19, len);
+                lens(&s, clen_tree, litn, len); build(lit_tree, prefix, litn, len);
+                lens(&s, clen_tree, dstn, len); build(dst_tree, prefix, dstn, len);
                 for (;;) {
                     u16_t sym = next(&s, lit_tree);
                     if (sym < 256) *s.out++ = sym;
