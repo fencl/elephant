@@ -35,6 +35,7 @@
  *  |    _/  \_ \_     |
  *  \==================/
  */
+
 #include <elephant.h>
 #if defined(ELEPHANT_THREADSAFE) && ELEPHANT_THREADSAFE
 #define TEMP
