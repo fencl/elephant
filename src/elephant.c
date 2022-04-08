@@ -50,7 +50,7 @@ typedef uint_least16_t u16_t;
 typedef struct stream_t { const b_t *restrict in; b_t *restrict out, inb, inl, bw; } stream_t;
 typedef struct node_t { unsigned b0: 12, b1: 12, pl: 8; } node_t;
 
-static u16_t dst_base   [] = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577 };
+static u16_t dst_base   [] = { 0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576 };
 static u8_t  len_base   [] = { 0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,255 };
 static u8_t  dst_extra  [] = { 0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13 };
 static u8_t  len_extra  [] = { 0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0 };
@@ -60,15 +60,14 @@ static u16_t read(stream_t *restrict in, u8_t c, b_t lsf) {
     u16_t out = 0; for (u8_t i = 0; i < c; ++i) {
         if (!in->inl) { in->inb = *in->in++; in->inl = in->bw; }
         b_t b = in->inb & 0x1; in->inb >>= 1; --in->inl;
-        out = lsf ? out | ((u16_t)b) << i : (out << 1) | b;
+        out = lsf ? out | ((u16_t)b) << i : out << 1 | b;
     } return out;
 }
 
-static inline u8_t top(u16_t bits, u8_t len) { return (bits >> (len - 1)) & 0x1; }
 static void build(node_t *restrict nodes, u16_t *restrict prefix, u16_t syms, const u8_t *restrict len) {
     u16_t blc[15] = {0}, code[16] = {0}, nc = 0, l;
     for (u16_t s = 0; s < syms; ++s) if ((l = len[s])) ++blc[l];
-    for (u8_t  b = 0; b < 15; ++b) code[b + 1] = (code[b] + blc[b]) << 1;
+    for (u8_t  b = 0; b < 15; ++b) code[b + 1] = code[b] + blc[b] << 1;
     for (u16_t s = 0; s < syms; ++s) {
         if ((l = len[s])) {
             u16_t c = code[l]++, i;
@@ -77,9 +76,9 @@ static void build(node_t *restrict nodes, u16_t *restrict prefix, u16_t syms, co
                 u16_t np = prefix[i], ln = node.pl, sp = 0;
                 u8_t spl = 0, tb;
                 for (;;) {
-                    tb = top(c, l--);
-                    if (ln && top(np, ln) == tb) {
-                        sp = (sp << 1) | tb; ++spl; --ln;
+                    tb = c >> --l & 0x1;
+                    if (ln && (np >> ln - 1 & 0x1) == tb) {
+                        sp = sp << 1 | tb; ++spl; --ln;
                     } else break;
                 }
                 if (node.b1 == 0xFFF || ln) {
@@ -130,17 +129,17 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                 if (c <= 23) {
                     sym = 256 + c;
                 } else {
-                    c = (c << 1) | read(&s, 1, 1);
+                    c = c << 1 | read(&s, 1, 1);
                     if (c >= 48 && c <= 191) sym = c - 48;
                     else if (c >= 192 && c <= 199) sym = c + 88;
-                    else sym = ((c << 1) | read(&s, 1, 1)) - 256;
+                    else sym = (c << 1 | read(&s, 1, 1)) - 256;
                 }
                 if (sym < 256) {
                     *s.out++ = sym;
                 } else if (sym > 256) {
                     u16_t len = len_base[sym - 257] + 3 + read(&s, len_extra[sym - 257], 1);
                     u8_t  ds  = read(&s, 5, 0);
-                    u16_t dst = dst_base[ds] + read(&s, dst_extra[ds], 1);
+                    u16_t dst = dst_base[ds] + 1 + read(&s, dst_extra[ds], 1);
                     b_t *restrict dat = s.out - dst;
                     for (u16_t i = 0; i < len; ++i) *s.out++ = dat[i % dst];
                 } else break;
@@ -163,7 +162,7 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                     else if (sym > 256) {
                         u16_t l = len_base[sym - 257] + 3 + read(&s, len_extra[sym - 257], 1);
                         u16_t ds = next(&s, dst_tree);
-                        u16_t dst = dst_base[ds] + read(&s, dst_extra[ds], 1);
+                        u16_t dst = dst_base[ds] + 1 + read(&s, dst_extra[ds], 1);
                         b_t *restrict dat = s.out - dst;
                         for (u16_t i = 0; i < l; ++i) *s.out++ = dat[i % dst];
                     } else break;
