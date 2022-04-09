@@ -51,8 +51,6 @@ typedef struct stream_t { const b_t *restrict in; b_t *restrict out, inb, inl, b
 typedef struct node_t { unsigned b0: 12, b1: 12, pl: 8; } node_t;
 
 static u8_t len_base   [] = { 0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,255 };
-static u8_t dst_extra  [] = { 0,0,1,2,3,4,5,6,7,8,9,10,11,12,13 };
-static u8_t len_extra  [] = { 0,0,1,2,3,4,5,0 };
 static u8_t lenlen_ord [] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
 
 static u16_t read(stream_t *restrict in, u8_t c, b_t lsf) {
@@ -135,10 +133,10 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                 }
                 if (sym < 256) {
                     *s.out++ = sym;
-                } else if (sym > 256) {
-                    u16_t len = len_base[sym - 257] + 3 + read(&s, len_extra[(sym - 257) / 4], 1);
+                } else if (sym > 256) { sym -= 257;
+                    u16_t len = len_base[sym] + 3 + read(&s, ((sym / 4) - !!(sym / 4)) * !(sym / 28), 1);
                     u8_t  ds  = read(&s, 5, 0);
-                    u16_t dst = (((2 + ds % 2) << 13) >> (29 - ds) / 2) + !!ds + read(&s, dst_extra[ds / 2], 1);
+                    u16_t dst = (((2 + ds % 2) << 13) >> (29 - ds) / 2) + !!ds + read(&s, (ds / 2) - !!(ds / 2), 1);
                     b_t *restrict dat = s.out - dst;
                     for (u16_t i = 0; i < len; ++i) *s.out++ = dat[i % dst];
                 } else break;
@@ -158,10 +156,10 @@ unsigned inflate(const void *restrict in, void *restrict out) {
                 for (;;) {
                     u16_t sym = next(&s, lit_tree);
                     if (sym < 256) *s.out++ = sym;
-                    else if (sym > 256) {
-                        u16_t l = len_base[sym - 257] + 3 + read(&s, len_extra[(sym - 257) / 4], 1);
+                    else if (sym > 256) { sym -= 257;
+                        u16_t l = len_base[sym] + 3 + read(&s, ((sym / 4) - !!(sym / 4)) * !(sym / 28), 1);
                         u16_t ds = next(&s, dst_tree);
-                        u16_t dst = (((2 + ds % 2) << 13) >> (29 - ds) / 2) + !!ds + read(&s, dst_extra[ds / 2], 1);
+                        u16_t dst = (((2 + ds % 2) << 13) >> (29 - ds) / 2) + !!ds + read(&s, (ds / 2) - !!(ds / 2), 1);
                         b_t *restrict dat = s.out - dst;
                         for (u16_t i = 0; i < l; ++i) *s.out++ = dat[i % dst];
                     } else break;
