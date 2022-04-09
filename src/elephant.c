@@ -53,7 +53,7 @@ typedef struct node_t { unsigned b0: 12, b1: 12, pl: 8; } node_t;
 static u8_t len_base   [] = { 0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,255 };
 static u8_t lenlen_ord [] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
 
-static u16_t read(stream_t *restrict in, u8_t c, b_t lsf) {
+static u16_t read(stream_t *in, u8_t c, b_t lsf) {
     u16_t out = 0; for (u8_t i = 0; i < c; ++i) {
         if (!in->inl) { in->inb = *in->in++; in->inl = in->bw; }
         b_t b = in->inb & 0x1; in->inb >>= 1; --in->inl;
@@ -61,8 +61,10 @@ static u16_t read(stream_t *restrict in, u8_t c, b_t lsf) {
     } return out;
 }
 
-static void build(node_t *restrict nodes, u16_t *restrict prefix, u16_t syms, const u8_t *restrict len) {
-    u16_t blc[15] = {0}, code[16] = {0}, nc = 0, l;
+static void build(node_t *restrict nodes, u16_t syms, const u8_t *restrict len) {
+    TEMP u16_t blc[15], code[16], prefix[571];
+    u16_t nc = 0, l; code[0] = 0;
+    for (u8_t  b = 0; b < 15; ++b) blc[b] = 0;
     for (u16_t s = 0; s < syms; ++s) if ((l = len[s])) ++blc[l];
     for (u8_t  b = 0; b < 15; ++b) code[b + 1] = code[b] + blc[b] << 1;
     for (u16_t s = 0; s < syms; ++s) {
@@ -89,7 +91,7 @@ static void build(node_t *restrict nodes, u16_t *restrict prefix, u16_t syms, co
     }
 }
 
-static u16_t next(stream_t *restrict in, node_t *restrict nodes) {
+static u16_t next(stream_t *in, node_t *nodes) {
     node_t n = nodes[0]; for (u16_t i = 0;; n = nodes[i = read(in, 1, 1) ? n.b1 : n.b0]) {
         read(in, n.pl, 0);
         if (n.b1 == 0xFFF) return n.b0;
@@ -144,15 +146,14 @@ unsigned inflate(const void *restrict in, void *restrict out) {
 
             case 2: {
                 TEMP u8_t   len[286];
-                TEMP u16_t  prefix[571];
                 TEMP node_t clen_tree[37], lit_tree[571], dst_tree[59];
                 u16_t litn = read(&s, 5, 1) + 257;
                 u8_t  dstn = read(&s, 5, 1) + 1;
                 u8_t  lenn = read(&s, 4, 1) + 4;
                 for (u8_t i = 0; i < 19; ++i) len[lenlen_ord[i]] = i < lenn ? read(&s, 3, 1) : 0;
-                build(clen_tree, prefix, 19, len);
-                lens(&s, clen_tree, litn, len); build(lit_tree, prefix, litn, len);
-                lens(&s, clen_tree, dstn, len); build(dst_tree, prefix, dstn, len);
+                build(clen_tree, 19, len);
+                lens(&s, clen_tree, litn, len); build(lit_tree, litn, len);
+                lens(&s, clen_tree, dstn, len); build(dst_tree, dstn, len);
                 for (;;) {
                     u16_t sym = next(&s, lit_tree);
                     if (sym < 256) *s.out++ = sym;
